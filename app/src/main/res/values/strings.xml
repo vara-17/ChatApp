@@ -20,6 +20,8 @@
     <string name="navigation_bottom_chat">Chat</string>
 
 
+    <string name="chat_edittext_message_hint">Type here a message</string>
+
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

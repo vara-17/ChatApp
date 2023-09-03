@@ -2,8 +2,6 @@ package vara17.chatapp
 
 import android.os.Bundle
 import android.view.MenuItem
-import androidx.appcompat.widget.Toolbar
-import androidx.core.view.get
 import androidx.viewpager.widget.ViewPager
 import com.google.firebase.auth.FirebaseAuth
 import vara17.chatapp.activities.base.ToolbarActivity
@@ -17,7 +15,6 @@ class MainActivity : ToolbarActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private lateinit var adapter: PagerAdapter
     private var prevBottomSelected: MenuItem? = null
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -26,7 +23,6 @@ class MainActivity : ToolbarActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        auth.signOut()
 
         toolbarToLoad(binding.toolbarView.toolbar)
 
@@ -35,10 +31,11 @@ class MainActivity : ToolbarActivity() {
     }
 
     private fun getPagerAdapter(): PagerAdapter {
+        val adapter: PagerAdapter
         adapter = PagerAdapter(supportFragmentManager)
-        adapter.addFragment(ChatFragment())
         adapter.addFragment(InfoFragment())
         adapter.addFragment(RatesFragment())
+        adapter.addFragment(ChatFragment())
         return adapter
     }
 
