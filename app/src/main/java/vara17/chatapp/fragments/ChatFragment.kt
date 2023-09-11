@@ -36,6 +36,8 @@ class ChatFragment : Fragment() {
     private val store: FirebaseFirestore = FirebaseFirestore.getInstance()
     private lateinit var chatDBRef: CollectionReference
 
+    private var chatSubscription: ListenerRegistration? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                                 savedInstanceState: Bundle?): View? {
         binding = FragmentChatBinding.inflate(inflater, container, false)
@@ -72,7 +74,12 @@ class ChatFragment : Fragment() {
         binding.buttonSend.setOnClickListener {
             val messageText = binding.editTextMessage.text.toString()
             if(messageText.isNotEmpty()){
-                val message = Message(currentUser.uid, messageText, currentUser.photoUrl.toString(), Date())
+                val photo = currentUser.photoUrl?.let{
+                    currentUser.photoUrl.toString()
+                }?: run {
+                    ""
+                }
+                val message = Message(currentUser.uid, messageText, photo, Date())
                 saveMessage(message)
                 binding.editTextMessage.setText("")
             }
@@ -96,8 +103,9 @@ class ChatFragment : Fragment() {
     }
 
     private fun suscribeToChatMessages(){
-        chatDBRef
+        chatSubscription = chatDBRef
             .orderBy("sentAt", Query.Direction.ASCENDING)
+            .limit(100)
             .addSnapshotListener(object: EventListener, com.google.firebase.firestore.EventListener<QuerySnapshot>{
             override fun onEvent(snapshot: QuerySnapshot?, e: FirebaseFirestoreException?) {
                 e?.let {
@@ -109,9 +117,15 @@ class ChatFragment : Fragment() {
                     val messages = it.toObjects(Message::class.java)
                     messageList.addAll(messages)
                     adapter.notifyDataSetChanged()
+                    binding.recyclerView.smoothScrollToPosition(messageList.size)
                 }
             }
         })
+    }
+
+    override fun onDestroy() {
+        chatSubscription?.remove()
+        super.onDestroy()
     }
 
 }

@@ -1,10 +1,12 @@
 package vara17.chatapp.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.squareup.picasso.Picasso
@@ -50,8 +52,14 @@ class ChatAdapter(val items: List<Message>, val userId: String) : RecyclerView.A
             val textViewTimeRight = findViewById<TextView>(R.id.textViewTimeRight)
             textViewTimeRight.text = SimpleDateFormat("hh:mm").format(message.sentAt)
             val imageViewProfileRight = findViewById<ImageView>(R.id.imageViewProfileRight)
-            Picasso.get().load(message.profileImageUrl).resize(100, 100)
-                .centerCrop().transform(CircleTransform()).into(imageViewProfileRight)
+            if(message.profileImageUrl.isEmpty()){
+                //TODO no carga la imagen del drawable
+                Picasso.get().load(R.drawable.ic_person).resize(100, 100)
+                    .centerCrop().transform(CircleTransform()).into(imageViewProfileRight)
+            }else{
+                Picasso.get().load(message.profileImageUrl).resize(100, 100)
+                    .centerCrop().transform(CircleTransform()).into(imageViewProfileRight)
+            }
         }
     }
 
@@ -62,8 +70,13 @@ class ChatAdapter(val items: List<Message>, val userId: String) : RecyclerView.A
             val textViewTimeLeft = findViewById<TextView>(R.id.textViewTimeLeft)
             textViewTimeLeft.text = SimpleDateFormat("hh:mm").format(message.sentAt)
             val imageViewProfileLeft = findViewById<ImageView>(R.id.imageViewProfileLeft)
-            Picasso.get().load(message.profileImageUrl).resize(100, 100)
-                .centerCrop().transform(CircleTransform()).into(imageViewProfileLeft)
+            if(message.profileImageUrl.isEmpty()){
+                Picasso.get().load(R.drawable.ic_person).resize(100, 100)
+                    .centerCrop().transform(CircleTransform()).into(imageViewProfileLeft)
+            }else{
+                Picasso.get().load(message.profileImageUrl).resize(100, 100)
+                    .centerCrop().transform(CircleTransform()).into(imageViewProfileLeft)
+            }
         }
     }
 }
