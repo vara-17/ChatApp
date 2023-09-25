@@ -1,32 +1,28 @@
 package vara17.chatapp.fragments
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.*
-import com.google.firebase.ktx.Firebase
-import vara17.chatapp.R
 import vara17.chatapp.adapters.ChatAdapter
-import vara17.chatapp.databinding.ActivityLoginBinding
 import vara17.chatapp.databinding.FragmentChatBinding
 import vara17.chatapp.models.Message
+import vara17.chatapp.models.TotalMessagesEvent
 import vara17.chatapp.toast
+import vara17.chatapp.utils.RxBus
 import java.util.*
 import java.util.EventListener
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 class ChatFragment : Fragment() {
 
     private lateinit var binding: FragmentChatBinding
 
-    private lateinit var view: View
     private lateinit var adapter: ChatAdapter
     private val messageList: ArrayList<Message> = ArrayList()
 
@@ -38,8 +34,10 @@ class ChatFragment : Fragment() {
 
     private var chatSubscription: ListenerRegistration? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                                savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         binding = FragmentChatBinding.inflate(inflater, container, false)
 
         setUpChatDatabase()
@@ -73,10 +71,10 @@ class ChatFragment : Fragment() {
     private fun setUpChatBtn() {
         binding.buttonSend.setOnClickListener {
             val messageText = binding.editTextMessage.text.toString()
-            if(messageText.isNotEmpty()){
-                val photo = currentUser.photoUrl?.let{
+            if (messageText.isNotEmpty()) {
+                val photo = currentUser.photoUrl?.let {
                     currentUser.photoUrl.toString()
-                }?: run {
+                } ?: run {
                     ""
                 }
                 val message = Message(currentUser.uid, messageText, photo, Date())
@@ -86,7 +84,7 @@ class ChatFragment : Fragment() {
         }
     }
 
-    private fun saveMessage(message: Message){
+    private fun saveMessage(message: Message) {
         val newMessage = HashMap<String, Any>()
         newMessage["authorId"] = message.authorId
         newMessage["message"] = message.message
@@ -102,25 +100,27 @@ class ChatFragment : Fragment() {
             }
     }
 
-    private fun suscribeToChatMessages(){
+    private fun suscribeToChatMessages() {
         chatSubscription = chatDBRef
             .orderBy("sentAt", Query.Direction.ASCENDING)
             .limit(100)
-            .addSnapshotListener(object: EventListener, com.google.firebase.firestore.EventListener<QuerySnapshot>{
-            override fun onEvent(snapshot: QuerySnapshot?, e: FirebaseFirestoreException?) {
-                e?.let {
-                    requireActivity()!!.toast("Exception")
-                    return
+            .addSnapshotListener(object : EventListener,
+                com.google.firebase.firestore.EventListener<QuerySnapshot> {
+                override fun onEvent(snapshot: QuerySnapshot?, e: FirebaseFirestoreException?) {
+                    e?.let {
+                        requireActivity()!!.toast("Exception")
+                        return
+                    }
+                    snapshot?.let {
+                        messageList.clear()
+                        val messages = it.toObjects(Message::class.java)
+                        messageList.addAll(messages)
+                        adapter.notifyDataSetChanged()
+                        binding.recyclerView.smoothScrollToPosition(messageList.size)
+                        RxBus.publish(TotalMessagesEvent(messageList.size))
+                    }
                 }
-                snapshot?.let {
-                    messageList.clear()
-                    val messages = it.toObjects(Message::class.java)
-                    messageList.addAll(messages)
-                    adapter.notifyDataSetChanged()
-                    binding.recyclerView.smoothScrollToPosition(messageList.size)
-                }
-            }
-        })
+            })
     }
 
     override fun onDestroy() {
